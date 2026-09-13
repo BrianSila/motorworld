@@ -28,7 +28,7 @@ class DevelopmentConfig(BaseConfig):
     DEBUG = True
     SQLALCHEMY_DATABASE_URI = os.getenv(
         "DATABASE_URL",
-        "postgresql://dev:simatei@localhost:5432/car_db",
+        "postgresql://dev:car_db2026@localhost:5432/car_db",
     )
 
 
