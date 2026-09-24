@@ -1,5 +1,5 @@
 import { apiRequest } from "./client";
-import type { Car, Paginated, Role, User } from "./types";
+import type { Car, Enquiry, Paginated, Role, TestDrive, User } from "./types";
 
 export type Analytics = {
   total_cars: number;
@@ -28,5 +28,35 @@ export function updateUserRole(userId: number, role: Role) {
     method: "PUT",
     body: { role },
     auth: true,
+  });
+}
+
+/**
+ * Detailed profile and history for one account.
+ * Related collections are optional — the backend may omit any of them.
+ */
+export type UserDetail = {
+  user: User;
+  cars?: Car[];
+  enquiries?: Enquiry[];
+  test_drives?: TestDrive[];
+  favourites?: { id: number; car_id: number; created_at: string; car?: Partial<Car> }[];
+};
+
+export function getUserDetail(userId: number) {
+  return apiRequest<UserDetail>(`/admin/users/${userId}`, { auth: true });
+}
+
+export function listAllEnquiries(params: { page?: number; limit?: number } = {}) {
+  return apiRequest<Paginated<"enquiries", Enquiry>>("/admin/enquiries", {
+    auth: true,
+    params,
+  });
+}
+
+export function listAllTestDrives(params: { page?: number; limit?: number } = {}) {
+  return apiRequest<Paginated<"test_drives", TestDrive>>("/admin/test-drives", {
+    auth: true,
+    params,
   });
 }

@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import get_jwt_identity
 from .schemas import UserSchema, ProfileUpdateSchema, RoleUpdateSchema
-from .services import update_profile, change_role, list_users, get_user_or_404
+from .services import update_profile, change_role, list_users, get_user_or_404, get_user_details
 from ..common.decorators import login_required, role_required
 from ..common.errors import ForbiddenError
 from ..common.pagination import paginate
@@ -50,3 +50,12 @@ def admin_change_role(user_id):
     data = role_update_schema.load(request.get_json() or {})
     target = change_role(actor, user_id, data["role"])
     return jsonify(user=user_schema.dump(target))
+
+
+@accounts_bp.get("/admin/users/<int:user_id>")
+@role_required("admin")
+def admin_get_user(user_id):
+    actor = get_user_or_404(int(get_jwt_identity()))
+    details = get_user_details(actor, user_id)
+
+    return jsonify(details), 200
