@@ -56,8 +56,14 @@ export type CarPayload = {
   images: string[];
 };
 
-export function createCar(payload: CarPayload) {
-  return apiRequest<{ car: Car }>("/cars", { method: "POST", body: payload, auth: true });
+export function createCar(payload: CarPayload, imageFiles: File[]) {
+  const form = new FormData();
+  const { images: _images, ...fields } = payload;
+  for (const [key, value] of Object.entries(fields)) {
+    if (value !== null && value !== undefined) form.append(key, String(value));
+  }
+  for (const image of imageFiles) form.append("images", image);
+  return apiRequest<{ car: Car }>("/cars", { method: "POST", body: form, auth: true });
 }
 
 export function updateCar(carId: number, payload: Partial<CarPayload>) {

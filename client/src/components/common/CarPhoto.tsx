@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Car as CarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { API_BASE_URL } from "@/lib/api/client";
 
 export function CarPhoto({
   url,
@@ -17,13 +18,15 @@ export function CarPhoto({
     setFailed(false);
   }, [url]);
 
-  if (!url || failed) {
+  const imageUrl =
+    url && url.startsWith("uploads/")
+      ? `${API_BASE_URL.replace(/\/api\/?$/, "")}/static/${url}`
+      : url;
+
+  if (!imageUrl || failed) {
     return (
       <div
-        className={cn(
-          "flex items-center justify-center bg-muted text-muted-foreground",
-          className,
-        )}
+        className={cn("flex items-center justify-center bg-muted text-muted-foreground", className)}
         role="img"
         aria-label={`${alt} — image unavailable`}
       >
@@ -34,7 +37,7 @@ export function CarPhoto({
 
   return (
     <img
-      src={url}
+      src={imageUrl}
       alt={alt}
       loading="lazy"
       onError={() => setFailed(true)}

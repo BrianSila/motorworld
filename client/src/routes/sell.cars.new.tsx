@@ -12,7 +12,10 @@ export const Route = createFileRoute("/sell/cars/new")({
   head: () => ({
     meta: [
       { title: "Add a vehicle — Simatei Motorworld" },
-      { name: "description", content: "Create a new vehicle listing with photos, pricing and specifications." },
+      {
+        name: "description",
+        content: "Create a new vehicle listing with photos, pricing and specifications.",
+      },
       { property: "og:title", content: "Add a vehicle — Simatei Motorworld" },
       {
         property: "og:description",
@@ -33,7 +36,8 @@ function NewCarPage() {
   const [values, setValues] = useState<CarFormValues>(emptyCarForm());
 
   const mutation = useMutation({
-    mutationFn: (payload: carsApi.CarPayload) => carsApi.createCar(payload),
+    mutationFn: ({ payload, imageFiles }: { payload: carsApi.CarPayload; imageFiles: File[] }) =>
+      carsApi.createCar(payload, imageFiles),
     onSuccess: (response) => {
       toast.success("Listing published");
       void queryClient.invalidateQueries({ queryKey: ["cars"] });
@@ -61,10 +65,11 @@ function NewCarPage() {
         <CarForm
           values={values}
           onChange={setValues}
-          onSubmit={(payload) => mutation.mutate(payload)}
+          onSubmit={(payload, imageFiles) => mutation.mutate({ payload, imageFiles })}
           submitting={mutation.isPending}
           error={mutation.error}
           submitLabel="Publish listing"
+          uploadImages
           secondaryAction={
             <Button asChild variant="ghost">
               <Link to="/sell/cars">Cancel</Link>
