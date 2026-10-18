@@ -1,3 +1,4 @@
+from typing import Optional
 from sqlalchemy import or_
 from ..extensions import db, cache
 from .models import Car, CarImage
@@ -80,7 +81,7 @@ def create_car(seller_id: int, image_files: list, data: dict) -> Car:
 
     return car
 
-def update_car(car: Car, actor, data: dict, image_files: list | None = None) -> Car:
+def update_car(car: Car, actor, data: dict, image_files: Optional[list] = None) -> Car:
     if car.seller_id != actor.id and actor.role != "admin":
         raise ForbiddenError("Not authorised to edit this car")
 
