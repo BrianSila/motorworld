@@ -18,7 +18,14 @@ import { FieldError } from "./states";
 import type { CarPayload } from "@/lib/api/cars";
 import { ApiError, errorMessage, fieldErrorsOf } from "@/lib/api/client";
 import { CONDITIONS, FUEL_TYPES, TRANSMISSIONS, type Car } from "@/lib/api/types";
-import { isValidHttpUrl } from "@/lib/format";
+
+export type FormPhotoItem = {
+  id: string;
+  type: "existing" | "file";
+  url: string;
+  file?: File;
+  name: string;
+};
 
 export type CarFormValues = {
   make: string;
@@ -34,8 +41,9 @@ export type CarFormValues = {
   description: string;
   location: string;
   is_negotiable: boolean;
-  images: string[];
-  imageFiles: File[];
+  photos: FormPhotoItem[];
+  images?: string[];
+  imageFiles?: File[];
 };
 
 export function emptyCarForm(): CarFormValues {
@@ -53,6 +61,7 @@ export function emptyCarForm(): CarFormValues {
     description: "",
     location: "",
     is_negotiable: false,
+    photos: [],
     images: [],
     imageFiles: [],
   };
@@ -62,6 +71,13 @@ export function carToForm(car: Car): CarFormValues {
   const ordered = [...(car.images ?? [])].sort(
     (a, b) => Number(b.is_primary) - Number(a.is_primary),
   );
+  const photos: FormPhotoItem[] = ordered.map((image, index) => ({
+    id: `existing-${image.id || index}-${image.url}`,
+    type: "existing",
+    url: image.url,
+    name: `Photo ${index + 1}`,
+  }));
+
   return {
     make: car.make,
     model: car.model,
@@ -76,6 +92,7 @@ export function carToForm(car: Car): CarFormValues {
     description: car.description ?? "",
     location: car.location ?? "",
     is_negotiable: car.is_negotiable,
+    photos,
     images: ordered.map((image) => image.url),
     imageFiles: [],
   };
@@ -89,11 +106,10 @@ export function CarForm({
   error,
   submitLabel,
   secondaryAction,
-  uploadImages = false,
 }: {
   values: CarFormValues;
   onChange: (values: CarFormValues) => void;
-  onSubmit: (payload: CarPayload, imageFiles: File[]) => void;
+  onSubmit: (payload: CarPayload, imageFiles: File[], photoOrder: string[]) => void;
   submitting: boolean;
   error: unknown;
   submitLabel: string;
@@ -101,14 +117,19 @@ export function CarForm({
   uploadImages?: boolean;
 }) {
   const [localError, setLocalError] = useState<ApiError | null>(null);
-  const [newImage, setNewImage] = useState("");
-  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
 
+  const photos = values.photos ?? [];
+
+  // Cleanup object URLs when component unmounts
   useEffect(() => {
-    const previews = values.imageFiles.map((file) => URL.createObjectURL(file));
-    setImagePreviews(previews);
-    return () => previews.forEach((preview) => URL.revokeObjectURL(preview));
-  }, [values.imageFiles]);
+    return () => {
+      photos.forEach((photo) => {
+        if (photo.type === "file" && photo.url.startsWith("blob:")) {
+          URL.revokeObjectURL(photo.url);
+        }
+      });
+    };
+  }, []);
 
   const fieldErrors = { ...fieldErrorsOf(localError), ...fieldErrorsOf(error) };
 
@@ -116,39 +137,7 @@ export function CarForm({
     onChange({ ...values, [key]: value });
   }
 
-  function addImage() {
-    const url = newImage.trim();
-    if (!url) return;
-    if (!isValidHttpUrl(url)) {
-      setLocalError(
-        new ApiError("Please fix the highlighted fields.", 400, {
-          images: ["Enter a valid image URL starting with http:// or https://"],
-        }),
-      );
-      return;
-    }
-    if (values.images.includes(url)) {
-      setLocalError(
-        new ApiError("Please fix the highlighted fields.", 400, {
-          images: ["That image URL has already been added."],
-        }),
-      );
-      return;
-    }
-    if (values.images.length >= 10) {
-      setLocalError(
-        new ApiError("Please fix the highlighted fields.", 400, {
-          images: ["You can add a maximum of 10 images."],
-        }),
-      );
-      return;
-    }
-    setLocalError(null);
-    set("images", [...values.images, url]);
-    setNewImage("");
-  }
-
-  function addImageFiles(files: FileList | null) {
+  function addPhotosFromLibrary(files: FileList | null) {
     if (!files?.length) return;
     const acceptedExtensions = new Set(["png", "jpg", "jpeg", "gif", "webp"]);
     const selected = Array.from(files);
@@ -156,43 +145,93 @@ export function CarForm({
       const extension = file.name.split(".").pop()?.toLowerCase();
       return !extension || !acceptedExtensions.has(extension);
     });
+
     if (invalid) {
       setLocalError(
         new ApiError("Please fix the highlighted fields.", 400, {
-          images: [`${invalid.name} is not a supported image format.`],
+          images: [`"${invalid.name}" is not a supported image format. Supported formats: PNG, JPG, JPEG, WebP, GIF.`],
         }),
       );
       return;
     }
-    if (values.imageFiles.length + selected.length > 10) {
+
+    if (photos.length + selected.length > 10) {
       setLocalError(
         new ApiError("Please fix the highlighted fields.", 400, {
-          images: ["You can upload a maximum of 10 images."],
+          images: ["You can have a maximum of 10 photos per vehicle."],
         }),
       );
       return;
     }
+
     setLocalError(null);
-    set("imageFiles", [...values.imageFiles, ...selected]);
+    const newItems: FormPhotoItem[] = selected.map((file, i) => ({
+      id: `file-${Date.now()}-${i}-${Math.random().toString(36).slice(2, 7)}`,
+      type: "file",
+      url: URL.createObjectURL(file),
+      file,
+      name: file.name,
+    }));
+
+    const nextPhotos = [...photos, ...newItems];
+    onChange({
+      ...values,
+      photos: nextPhotos,
+      images: nextPhotos.map((p) => p.url),
+      imageFiles: nextPhotos
+        .filter((p): p is FormPhotoItem & { file: File } => p.type === "file" && !!p.file)
+        .map((p) => p.file),
+    });
+  }
+
+  function removePhoto(index: number) {
+    const photo = photos[index];
+    if (photo && photo.type === "file" && photo.url.startsWith("blob:")) {
+      URL.revokeObjectURL(photo.url);
+    }
+    const nextPhotos = photos.filter((_, i) => i !== index);
+    onChange({
+      ...values,
+      photos: nextPhotos,
+      images: nextPhotos.map((p) => p.url),
+      imageFiles: nextPhotos
+        .filter((p): p is FormPhotoItem & { file: File } => p.type === "file" && !!p.file)
+        .map((p) => p.file),
+    });
   }
 
   function move(index: number, delta: number) {
-    const next = [...(uploadImages ? values.imageFiles : values.images)];
+    const next = [...photos];
     const target = index + delta;
     if (target < 0 || target >= next.length) return;
     const current = next[index]!;
     next[index] = next[target]!;
     next[target] = current;
-    if (uploadImages) set("imageFiles", next as File[]);
-    else set("images", next as string[]);
+
+    onChange({
+      ...values,
+      photos: next,
+      images: next.map((p) => p.url),
+      imageFiles: next
+        .filter((p): p is FormPhotoItem & { file: File } => p.type === "file" && !!p.file)
+        .map((p) => p.file),
+    });
   }
 
   function makePrimary(index: number) {
-    const next = [...(uploadImages ? values.imageFiles : values.images)];
+    if (index === 0) return;
+    const next = [...photos];
     const [picked] = next.splice(index, 1);
     if (picked) next.unshift(picked);
-    if (uploadImages) set("imageFiles", next as File[]);
-    else set("images", next as string[]);
+
+    onChange({
+      ...values,
+      photos: next,
+      images: next.map((p) => p.url),
+      imageFiles: next
+        .filter((p): p is FormPhotoItem & { file: File } => p.type === "file" && !!p.file)
+        .map((p) => p.file),
+    });
   }
 
   function handleSubmit(event: React.FormEvent) {
@@ -207,10 +246,8 @@ export function CarForm({
     if (!Number.isFinite(price) || price <= 0) problems["price"] = ["Enter a price above zero"];
     if (values.mileage.trim() && Number(values.mileage) < 0)
       problems["mileage"] = ["Mileage cannot be negative"];
-    if (uploadImages ? values.imageFiles.length === 0 : values.images.length === 0) {
-      problems["images"] = [
-        uploadImages ? "Upload at least one image" : "Add at least one image URL",
-      ];
+    if (photos.length === 0) {
+      problems["images"] = ["Please choose at least one photo from your library."];
     }
 
     if (Object.keys(problems).length > 0) {
@@ -218,6 +255,19 @@ export function CarForm({
       return;
     }
     setLocalError(null);
+
+    const imageFiles: File[] = [];
+    const photoOrder: string[] = [];
+
+    for (const photo of photos) {
+      if (photo.type === "file" && photo.file) {
+        const fileIdx = imageFiles.length;
+        imageFiles.push(photo.file);
+        photoOrder.push(`file:${fileIdx}`);
+      } else if (photo.type === "existing") {
+        photoOrder.push(`existing:${photo.url}`);
+      }
+    }
 
     onSubmit(
       {
@@ -234,20 +284,14 @@ export function CarForm({
         description: values.description.trim() ? values.description.trim() : null,
         location: values.location.trim() ? values.location.trim() : null,
         is_negotiable: values.is_negotiable,
-        images: values.images,
+        images: photos.map((p) => p.url),
       },
-      values.imageFiles,
+      imageFiles,
+      photoOrder,
     );
   }
 
   const visibleError = error ?? localError;
-  const photos = uploadImages
-    ? values.imageFiles.map((file, index) => ({
-        key: `${file.name}-${file.lastModified}-${index}`,
-        url: imagePreviews[index] ?? "",
-        name: file.name,
-      }))
-    : values.images.map((url, index) => ({ key: url, url, name: `Photo ${index + 1}` }));
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8" noValidate>
@@ -413,69 +457,57 @@ export function CarForm({
       </section>
 
       <section className="rounded-xl border border-border bg-card p-6">
-        <h2 className="text-lg heading-xl">Photos</h2>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {uploadImages
-            ? "Upload 1 to 10 photos of your vehicle. The first photo is used as the main image."
-            : "Add between 1 and 10 image links. The first photo is used as the main image."}
-        </p>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h2 className="text-lg heading-xl">Photos</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Add photos from your device or photo library. The first photo is used as the main display image.
+            </p>
+          </div>
+          <span className="text-xs font-medium text-muted-foreground">
+            {photos.length} / 10 photos
+          </span>
+        </div>
 
-        {uploadImages ? (
-          <label className="relative mt-5 flex min-h-36 cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border bg-muted/30 px-5 py-6 text-center transition-colors hover:bg-muted/60 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-ring">
+        {/* Upload Button / Dropzone */}
+        {photos.length < 10 ? (
+          <label className="relative mt-5 flex min-h-36 cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-border bg-muted/20 px-5 py-6 text-center transition-all hover:border-primary/50 hover:bg-muted/40 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-ring">
             <input
               type="file"
               accept=".png,.jpg,.jpeg,.gif,.webp,image/png,image/jpeg,image/gif,image/webp"
               multiple
-              disabled={values.imageFiles.length >= 10}
               onChange={(event) => {
-                addImageFiles(event.target.files);
+                addPhotosFromLibrary(event.target.files);
                 event.target.value = "";
               }}
-              className="absolute inset-0 cursor-pointer opacity-0 disabled:cursor-not-allowed"
-              aria-label="Choose vehicle photos"
+              className="absolute inset-0 cursor-pointer opacity-0"
+              aria-label="Choose vehicle photos from your library"
             />
-            <span className="flex size-10 items-center justify-center rounded-full bg-background text-primary">
+            <span className="flex size-11 items-center justify-center rounded-full bg-primary/10 text-primary shadow-sm">
               <Upload className="size-5" aria-hidden="true" />
             </span>
-            <span className="text-sm font-medium">
-              {values.imageFiles.length >= 10 ? "Photo limit reached" : "Choose photos to upload"}
+            <span className="text-sm font-semibold text-foreground">
+              {photos.length === 0 ? "Choose photos from your library" : "Add more photos from library"}
             </span>
             <span className="text-xs text-muted-foreground">
-              PNG, JPG, GIF or WebP · up to 10 photos
+              PNG, JPG, JPEG, WebP or GIF · Tap or click to browse
             </span>
           </label>
-        ) : (
-          <div className="mt-5 flex flex-col gap-2 sm:flex-row">
-            <Input
-              value={newImage}
-              onChange={(event) => setNewImage(event.target.value)}
-              onKeyDown={(event) => {
-                if (event.key === "Enter") {
-                  event.preventDefault();
-                  addImage();
-                }
-              }}
-              placeholder="https://example.com/photo.jpg"
-              aria-label="Image URL"
-            />
-            <Button type="button" variant="outline" onClick={addImage}>
-              <Plus className="size-4" aria-hidden="true" />
-              Add photo
-            </Button>
-          </div>
-        )}
-        <div className="mt-2 flex items-center justify-between gap-3">
+        ) : null}
+
+        <div className="mt-2">
           <FieldError messages={fieldErrors["images"]} />
-          <span className="ml-auto shrink-0 text-xs text-muted-foreground">
-            {uploadImages ? values.imageFiles.length : values.images.length} / 10 photos
-          </span>
         </div>
 
+        {/* Photos grid */}
         {photos.length > 0 ? (
           <ul className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {photos.map((photo, index) => (
-              <li key={photo.key} className="overflow-hidden rounded-lg border border-border">
-                <div className="aspect-[4/3] bg-muted">
+              <li
+                key={photo.id}
+                className="group relative overflow-hidden rounded-lg border border-border bg-card shadow-xs transition-shadow hover:shadow-md"
+              >
+                <div className="relative aspect-[4/3] bg-muted">
                   {photo.url ? (
                     <CarPhoto
                       url={photo.url}
@@ -487,8 +519,16 @@ export function CarForm({
                       <ImagePlus className="size-8" aria-hidden="true" />
                     </div>
                   )}
+
+                  {index === 0 && (
+                    <span className="absolute left-2.5 top-2.5 inline-flex items-center gap-1 rounded-full bg-primary px-2.5 py-0.5 text-xs font-semibold text-primary-foreground shadow-sm">
+                      <Star className="size-3 fill-primary-foreground" aria-hidden="true" />
+                      Main photo
+                    </span>
+                  )}
                 </div>
-                <div className="flex items-center justify-between gap-1 p-2">
+
+                <div className="flex items-center justify-between gap-1 p-2.5">
                   <span
                     className="min-w-0 truncate text-xs text-muted-foreground"
                     title={photo.name}
@@ -498,22 +538,28 @@ export function CarForm({
                     </span>
                     <span className="block truncate">{photo.name}</span>
                   </span>
+
                   <div className="flex shrink-0 items-center gap-1">
                     <Button
                       type="button"
                       variant="ghost"
                       size="icon"
                       aria-label={`Make photo ${index + 1} the main photo`}
+                      title="Set as main photo"
                       onClick={() => makePrimary(index)}
                       disabled={index === 0}
                     >
-                      <Star className="size-4" aria-hidden="true" />
+                      <Star
+                        className={`size-4 ${index === 0 ? "fill-amber-400 text-amber-500" : ""}`}
+                        aria-hidden="true"
+                      />
                     </Button>
                     <Button
                       type="button"
                       variant="ghost"
                       size="icon"
                       aria-label={`Move photo ${index + 1} earlier`}
+                      title="Move earlier"
                       onClick={() => move(index, -1)}
                       disabled={index === 0}
                     >
@@ -524,6 +570,7 @@ export function CarForm({
                       variant="ghost"
                       size="icon"
                       aria-label={`Move photo ${index + 1} later`}
+                      title="Move later"
                       onClick={() => move(index, 1)}
                       disabled={index === photos.length - 1}
                     >
@@ -534,19 +581,9 @@ export function CarForm({
                       variant="ghost"
                       size="icon"
                       aria-label={`Remove photo ${index + 1}`}
-                      onClick={() => {
-                        if (uploadImages) {
-                          set(
-                            "imageFiles",
-                            values.imageFiles.filter((_, photoIndex) => photoIndex !== index),
-                          );
-                        } else {
-                          set(
-                            "images",
-                            values.images.filter((_, photoIndex) => photoIndex !== index),
-                          );
-                        }
-                      }}
+                      title="Remove photo"
+                      className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                      onClick={() => removePhoto(index)}
                     >
                       <Trash2 className="size-4" aria-hidden="true" />
                     </Button>

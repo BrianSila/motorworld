@@ -18,10 +18,18 @@ export function CarPhoto({
     setFailed(false);
   }, [url]);
 
-  const imageUrl =
-    url && url.startsWith("uploads/")
-      ? `${API_BASE_URL.replace(/\/api\/?$/, "")}/static/${url}`
-      : url;
+  let imageUrl = url;
+  if (
+    url &&
+    !url.startsWith("http://") &&
+    !url.startsWith("https://") &&
+    !url.startsWith("blob:") &&
+    !url.startsWith("data:")
+  ) {
+    const cleanUrl = url.startsWith("/") ? url : `/${url}`;
+    const staticPath = cleanUrl.startsWith("/static/") ? cleanUrl : `/static${cleanUrl}`;
+    imageUrl = `${API_BASE_URL.replace(/\/api\/?$/, "")}${staticPath}`;
+  }
 
   if (!imageUrl || failed) {
     return (

@@ -16,6 +16,8 @@ import { useAuth } from "@/lib/auth";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
+import companyLogo from "@/assets/company-logo.jpeg";
+
 const navLinks = [
   { to: "/", label: "Home" },
   { to: "/cars", label: "Inventory" },
@@ -25,15 +27,11 @@ const navLinks = [
 function Brand() {
   return (
     <Link to="/" className="flex items-center gap-2" aria-label="Simatei Motorworld home">
-      <span className="flex size-9 items-center justify-center rounded-md bg-primary text-primary-foreground">
-        <Car className="size-5" aria-hidden="true" />
-      </span>
-      <span className="leading-none">
-        <span className="block heading-xl text-lg">Simatei</span>
-        <span className="block text-[0.66rem] tracking-[0.28em] text-muted-foreground uppercase">
-          Motorworld
-        </span>
-      </span>
+      <img
+        src={companyLogo}
+        alt="Simatei Motorworld"
+        className="h-10 sm:h-11 w-auto max-w-[180px] sm:max-w-[210px] object-contain"
+      />
     </Link>
   );
 }

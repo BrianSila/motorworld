@@ -1,4 +1,4 @@
-from marshmallow import Schema, fields, validate, validates_schema, ValidationError
+from marshmallow import Schema, fields, validate, validates_schema, ValidationError, EXCLUDE
 from datetime import datetime
 
 
@@ -11,6 +11,9 @@ class CarImageSchema(Schema):
 
 # ── INPUT schema (used with car_schema.load on request.form) ──
 class CarCreateSchema(Schema):
+    class Meta:
+        unknown = EXCLUDE
+
     make = fields.Str(required=True, validate=validate.Length(max=50))
     model = fields.Str(required=True, validate=validate.Length(max=50))
     year = fields.Int(required=True)

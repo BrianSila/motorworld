@@ -81,38 +81,74 @@ def create_car(seller_id: int, image_files: list, data: dict) -> Car:
 
     return car
 
-def update_car(car: Car, actor, data: dict, image_files: Optional[list] = None) -> Car:
+def update_car(
+    car: Car,
+    actor,
+    data: dict,
+    image_files: Optional[list] = None,
+    photo_order: Optional[list] = None,
+) -> Car:
     if car.seller_id != actor.id and actor.role != "admin":
         raise ForbiddenError("Not authorised to edit this car")
 
     for field, value in data.items():
-        setattr(car, field, value)
+        if hasattr(car, field):
+            setattr(car, field, value)
 
-    old_paths = []
-    new_paths = []
-
-    if image_files is not None:
-        old_paths = [img.url for img in car.images]
-        CarImage.query.filter_by(car_id=car.id).delete()
-
+    # If photo updates are supplied
+    if photo_order is not None or (image_files is not None and len(image_files) > 0):
+        new_paths = []
         try:
-            for i, file in enumerate(image_files):
-                rel_path = save_image(file)
-                new_paths.append(rel_path)
+            # 1. Save all new image files uploaded from library
+            if image_files:
+                for file in image_files:
+                    if file and getattr(file, "filename", None):
+                        rel_path = save_image(file)
+                        new_paths.append(rel_path)
+
+            # 2. Determine final sequence of URLs
+            final_urls = []
+            if photo_order:
+                for item in photo_order:
+                    item_str = str(item).strip()
+                    if item_str.startswith("file:"):
+                        idx = int(item_str.split(":", 1)[1])
+                        if 0 <= idx < len(new_paths):
+                            final_urls.append(new_paths[idx])
+                    elif item_str.startswith("existing:"):
+                        final_urls.append(item_str.split(":", 1)[1])
+                    else:
+                        final_urls.append(item_str)
+            else:
+                existing_urls = [img.url for img in car.images]
+                final_urls = existing_urls + new_paths
+
+            if not final_urls:
+                raise APIError("At least one image is required", status_code=400)
+            if len(final_urls) > 10:
+                raise APIError("Maximum 10 images allowed", status_code=400)
+
+            # 3. Identify old images no longer used
+            current_urls = [img.url for img in car.images]
+            old_paths_to_delete = [u for u in current_urls if u not in final_urls]
+
+            # 4. Replace database image records in the exact specified order
+            CarImage.query.filter_by(car_id=car.id).delete()
+            for i, url in enumerate(final_urls):
                 db.session.add(
-                    CarImage(url=rel_path, is_primary=(i == 0), car_id=car.id)
+                    CarImage(url=url, is_primary=(i == 0), car_id=car.id)
                 )
             db.session.commit()
+
+            # 5. Delete removed images from disk
+            for p in old_paths_to_delete:
+                delete_image(p)
+
         except Exception:
             db.session.rollback()
             for p in new_paths:
                 delete_image(p)
             raise
-
-        # only delete old files once DB is safely committed
-        for p in old_paths:
-            delete_image(p)
-
     else:
         db.session.commit()
 

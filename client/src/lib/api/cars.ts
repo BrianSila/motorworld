@@ -68,7 +68,31 @@ export function createCar(payload: CarPayload, imageFiles: File[]) {
   return apiRequest<{ car: Car }>("/cars", { method: "POST", body: form, auth: true });
 }
 
-export function updateCar(carId: number, payload: Partial<CarPayload>) {
+export function updateCar(
+  carId: number,
+  payload: Partial<CarPayload>,
+  imageFiles?: File[],
+  photoOrder?: string[],
+) {
+  if ((imageFiles && imageFiles.length > 0) || (photoOrder && photoOrder.length > 0)) {
+    const form = new FormData();
+    const { images: _images, ...fields } = payload;
+    for (const [key, value] of Object.entries(fields)) {
+      if (value !== null && value !== undefined) form.append(key, String(value));
+    }
+    if (imageFiles) {
+      for (const image of imageFiles) form.append("images", image);
+    }
+    if (photoOrder) {
+      for (const order of photoOrder) form.append("photo_order", order);
+    }
+    return apiRequest<{ car: Car }>(`/cars/${carId}`, {
+      method: "PUT",
+      body: form,
+      auth: true,
+    });
+  }
+
   return apiRequest<{ car: Car }>(`/cars/${carId}`, {
     method: "PUT",
     body: payload,

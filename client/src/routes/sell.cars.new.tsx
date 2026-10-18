@@ -69,7 +69,6 @@ function NewCarPage() {
           submitting={mutation.isPending}
           error={mutation.error}
           submitLabel="Publish listing"
-          uploadImages
           secondaryAction={
             <Button asChild variant="ghost">
               <Link to="/sell/cars">Cancel</Link>

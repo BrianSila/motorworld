@@ -77,7 +77,7 @@ availability_schema = CarAvailabilityUpdateSchema()
 
 
 @inventory_bp.post("/cars")
-@jwt_required()
+@login_required
 def add_car():
     user = get_user_or_404(int(get_jwt_identity()))
 
@@ -87,21 +87,50 @@ def add_car():
     if len(image_files) > 10:
         return jsonify(error="Maximum 10 images allowed"), 400
 
-    raw = request.form.to_dict() 
-    data = car_create_schema.load(raw)             # no 'images' key → no error
+    raw = coerce_form(request.form.to_dict())
+    raw.pop("images", None)
+    raw.pop("photo_order", None)
+    data = car_create_schema.load(raw)
 
     car = create_car(user.id, image_files=image_files, data=data)
-    return jsonify(car=car_schema.dump(car)), 201
+    return jsonify(car=car.to_dict()), 201
+
+
 @inventory_bp.put("/cars/<int:car_id>")
 @login_required
 def put_car(car_id):
-    from flask_jwt_extended import get_jwt_identity
-    from ..accounts.services import get_user_or_404
-
     user = get_user_or_404(int(get_jwt_identity()))
     car = get_car_or_404(car_id)
-    data = car_update_schema.load(request.get_json() or {}, partial=True)
-    car = update_car(car, user, data)
+
+    if request.is_json:
+        data = car_update_schema.load(request.get_json() or {}, partial=True)
+        car = update_car(car, user, data)
+    else:
+        raw = coerce_form(request.form.to_dict())
+        image_files = request.files.getlist("images")
+        photo_order = request.form.getlist("photo_order")
+
+        if len(photo_order) == 1 and (photo_order[0].startswith("[") or "," in photo_order[0]):
+            import json
+            try:
+                photo_order = json.loads(photo_order[0])
+            except Exception:
+                photo_order = [p.strip() for p in photo_order[0].split(",") if p.strip()]
+
+        has_photo_update = bool(image_files) or ("photo_order" in request.form)
+
+        raw.pop("images", None)
+        raw.pop("photo_order", None)
+        data = car_update_schema.load(raw, partial=True)
+
+        car = update_car(
+            car,
+            user,
+            data,
+            image_files=image_files if image_files else None,
+            photo_order=photo_order if has_photo_update else None,
+        )
+
     return jsonify(car=car.to_dict())
 
 

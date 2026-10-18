@@ -51,7 +51,15 @@ function EditCarPage() {
   }, [query.data]);
 
   const mutation = useMutation({
-    mutationFn: (payload: carsApi.CarPayload) => carsApi.updateCar(numericId, payload),
+    mutationFn: ({
+      payload,
+      imageFiles,
+      photoOrder,
+    }: {
+      payload: carsApi.CarPayload;
+      imageFiles: File[];
+      photoOrder: string[];
+    }) => carsApi.updateCar(numericId, payload, imageFiles, photoOrder),
     onSuccess: () => {
       toast.success("Listing updated");
       void queryClient.invalidateQueries({ queryKey: ["cars"] });
@@ -107,14 +115,16 @@ function EditCarPage() {
 
       <h1 className="mt-3 text-3xl heading-xl">Edit listing</h1>
       <p className="mt-1 text-sm text-muted-foreground">
-        Saving photos replaces the whole photo set with the list below.
+        Manage photos from your library, update specifications, and adjust pricing.
       </p>
 
       <div className="mt-8">
         <CarForm
           values={values}
           onChange={setValues}
-          onSubmit={(payload) => mutation.mutate(payload)}
+          onSubmit={(payload, imageFiles, photoOrder) =>
+            mutation.mutate({ payload, imageFiles, photoOrder })
+          }
           submitting={mutation.isPending}
           error={mutation.error}
           submitLabel="Save changes"
