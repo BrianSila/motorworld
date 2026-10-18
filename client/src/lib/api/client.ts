@@ -16,12 +16,7 @@ export class ApiError extends Error {
   fieldErrors?: FieldErrors | undefined;
   detailsText?: string | undefined;
 
-  constructor(
-    message: string,
-    status: number,
-    fieldErrors?: FieldErrors,
-    detailsText?: string,
-  ) {
+  constructor(message: string, status: number, fieldErrors?: FieldErrors, detailsText?: string) {
     super(message);
     this.name = "ApiError";
     this.status = status;
@@ -85,10 +80,7 @@ function defaultMessage(status: number): string {
   }
 }
 
-export type QueryParams = Record<
-  string,
-  string | number | boolean | null | undefined
->;
+export type QueryParams = Record<string, string | number | boolean | null | undefined>;
 
 export function buildQuery(params?: QueryParams): string {
   if (!params) return "";
@@ -115,7 +107,8 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
   const { method = "GET", body, auth = false, optionalAuth = false, params, signal } = options;
 
   const headers: Record<string, string> = {};
-  if (body !== undefined) headers["Content-Type"] = "application/json";
+  const isFormData = typeof FormData !== "undefined" && body instanceof FormData;
+  if (body !== undefined && !isFormData) headers["Content-Type"] = "application/json";
 
   if (auth || optionalAuth) {
     const token = tokenGetter();
@@ -127,7 +120,7 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
     response = await fetch(`${BASE_URL}${path}${buildQuery(params)}`, {
       method,
       headers,
-      ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+      ...(body === undefined ? {} : { body: isFormData ? body : JSON.stringify(body) }),
       ...(signal ? { signal } : {}),
     });
   } catch {

@@ -3,6 +3,7 @@ from ..extensions import db
 from ..inventory.models import Car
 from ..enquiries.models import Enquiry
 from ..favourites.models import Favourite
+from ..test_drives.models import TestDrive
 
 
 def dashboard_stats():
@@ -42,4 +43,35 @@ def popular_cars(limit=10):
     return {
         "most_viewed": [c.to_dict(include_images=False) for c in by_views],
         "most_favourited": [c.to_dict(include_images=False) for c in fav_cars],
+    }
+    
+
+def all_enquiries(page=1, limit=20):
+    pagination = (
+        Enquiry.query
+        .order_by(Enquiry.created_at.desc())
+        .paginate(page=page, per_page=limit, error_out=False)
+    )
+
+    return {
+        "enquiries": [enquiry.to_dict() for enquiry in pagination.items],
+        "total": pagination.total,
+        "pages": pagination.pages,
+        "current_page": pagination.page
+    }
+
+
+
+def all_test_drives(page=1, limit=20):
+    pagination = (
+        TestDrive.query
+        .order_by(TestDrive.created_at.desc())
+        .paginate(page=page, per_page=limit, error_out=False)
+    )
+    
+    return {
+        "test_drives": [c.to_dict() for c in pagination.items],
+        "total": pagination.total,
+        "pages": pagination.pages,
+        "current_page": pagination.page
     }

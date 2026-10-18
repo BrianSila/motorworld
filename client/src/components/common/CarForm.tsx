@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { ArrowDown, ArrowUp, Loader2, Plus, Star, Trash2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { ArrowDown, ArrowUp, ImagePlus, Loader2, Plus, Star, Trash2, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -35,6 +35,7 @@ export type CarFormValues = {
   location: string;
   is_negotiable: boolean;
   images: string[];
+  imageFiles: File[];
 };
 
 export function emptyCarForm(): CarFormValues {
@@ -53,6 +54,7 @@ export function emptyCarForm(): CarFormValues {
     location: "",
     is_negotiable: false,
     images: [],
+    imageFiles: [],
   };
 }
 
@@ -75,6 +77,7 @@ export function carToForm(car: Car): CarFormValues {
     location: car.location ?? "",
     is_negotiable: car.is_negotiable,
     images: ordered.map((image) => image.url),
+    imageFiles: [],
   };
 }
 
@@ -86,17 +89,26 @@ export function CarForm({
   error,
   submitLabel,
   secondaryAction,
+  uploadImages = false,
 }: {
   values: CarFormValues;
   onChange: (values: CarFormValues) => void;
-  onSubmit: (payload: CarPayload) => void;
+  onSubmit: (payload: CarPayload, imageFiles: File[]) => void;
   submitting: boolean;
   error: unknown;
   submitLabel: string;
   secondaryAction?: React.ReactNode;
+  uploadImages?: boolean;
 }) {
   const [localError, setLocalError] = useState<ApiError | null>(null);
   const [newImage, setNewImage] = useState("");
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+
+  useEffect(() => {
+    const previews = values.imageFiles.map((file) => URL.createObjectURL(file));
+    setImagePreviews(previews);
+    return () => previews.forEach((preview) => URL.revokeObjectURL(preview));
+  }, [values.imageFiles]);
 
   const fieldErrors = { ...fieldErrorsOf(localError), ...fieldErrorsOf(error) };
 
@@ -136,21 +148,51 @@ export function CarForm({
     setNewImage("");
   }
 
+  function addImageFiles(files: FileList | null) {
+    if (!files?.length) return;
+    const acceptedExtensions = new Set(["png", "jpg", "jpeg", "gif", "webp"]);
+    const selected = Array.from(files);
+    const invalid = selected.find((file) => {
+      const extension = file.name.split(".").pop()?.toLowerCase();
+      return !extension || !acceptedExtensions.has(extension);
+    });
+    if (invalid) {
+      setLocalError(
+        new ApiError("Please fix the highlighted fields.", 400, {
+          images: [`${invalid.name} is not a supported image format.`],
+        }),
+      );
+      return;
+    }
+    if (values.imageFiles.length + selected.length > 10) {
+      setLocalError(
+        new ApiError("Please fix the highlighted fields.", 400, {
+          images: ["You can upload a maximum of 10 images."],
+        }),
+      );
+      return;
+    }
+    setLocalError(null);
+    set("imageFiles", [...values.imageFiles, ...selected]);
+  }
+
   function move(index: number, delta: number) {
-    const next = [...values.images];
+    const next = [...(uploadImages ? values.imageFiles : values.images)];
     const target = index + delta;
     if (target < 0 || target >= next.length) return;
     const current = next[index]!;
     next[index] = next[target]!;
     next[target] = current;
-    set("images", next);
+    if (uploadImages) set("imageFiles", next as File[]);
+    else set("images", next as string[]);
   }
 
   function makePrimary(index: number) {
-    const next = [...values.images];
+    const next = [...(uploadImages ? values.imageFiles : values.images)];
     const [picked] = next.splice(index, 1);
     if (picked) next.unshift(picked);
-    set("images", next);
+    if (uploadImages) set("imageFiles", next as File[]);
+    else set("images", next as string[]);
   }
 
   function handleSubmit(event: React.FormEvent) {
@@ -165,7 +207,11 @@ export function CarForm({
     if (!Number.isFinite(price) || price <= 0) problems["price"] = ["Enter a price above zero"];
     if (values.mileage.trim() && Number(values.mileage) < 0)
       problems["mileage"] = ["Mileage cannot be negative"];
-    if (values.images.length === 0) problems["images"] = ["Add at least one image URL"];
+    if (uploadImages ? values.imageFiles.length === 0 : values.images.length === 0) {
+      problems["images"] = [
+        uploadImages ? "Upload at least one image" : "Add at least one image URL",
+      ];
+    }
 
     if (Object.keys(problems).length > 0) {
       setLocalError(new ApiError("Please fix the highlighted fields.", 400, problems));
@@ -173,25 +219,35 @@ export function CarForm({
     }
     setLocalError(null);
 
-    onSubmit({
-      make: values.make.trim(),
-      model: values.model.trim(),
-      year,
-      price,
-      currency: values.currency.trim() || "KES",
-      mileage: values.mileage.trim() ? Number(values.mileage) : null,
-      condition: values.condition,
-      fuel_type: values.fuel_type,
-      transmission: values.transmission,
-      color: values.color.trim() ? values.color.trim() : null,
-      description: values.description.trim() ? values.description.trim() : null,
-      location: values.location.trim() ? values.location.trim() : null,
-      is_negotiable: values.is_negotiable,
-      images: values.images,
-    });
+    onSubmit(
+      {
+        make: values.make.trim(),
+        model: values.model.trim(),
+        year,
+        price,
+        currency: values.currency.trim() || "KES",
+        mileage: values.mileage.trim() ? Number(values.mileage) : null,
+        condition: values.condition,
+        fuel_type: values.fuel_type,
+        transmission: values.transmission,
+        color: values.color.trim() ? values.color.trim() : null,
+        description: values.description.trim() ? values.description.trim() : null,
+        location: values.location.trim() ? values.location.trim() : null,
+        is_negotiable: values.is_negotiable,
+        images: values.images,
+      },
+      values.imageFiles,
+    );
   }
 
   const visibleError = error ?? localError;
+  const photos = uploadImages
+    ? values.imageFiles.map((file, index) => ({
+        key: `${file.name}-${file.lastModified}-${index}`,
+        url: imagePreviews[index] ?? "",
+        name: file.name,
+      }))
+    : values.images.map((url, index) => ({ key: url, url, name: `Photo ${index + 1}` }));
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8" noValidate>
@@ -359,39 +415,88 @@ export function CarForm({
       <section className="rounded-xl border border-border bg-card p-6">
         <h2 className="text-lg heading-xl">Photos</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Add between 1 and 10 image links. The first photo is used as the main image.
+          {uploadImages
+            ? "Upload 1 to 10 photos of your vehicle. The first photo is used as the main image."
+            : "Add between 1 and 10 image links. The first photo is used as the main image."}
         </p>
 
-        <div className="mt-5 flex flex-col gap-2 sm:flex-row">
-          <Input
-            value={newImage}
-            onChange={(event) => setNewImage(event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key === "Enter") {
-                event.preventDefault();
-                addImage();
-              }
-            }}
-            placeholder="https://example.com/photo.jpg"
-            aria-label="Image URL"
-          />
-          <Button type="button" variant="outline" onClick={addImage}>
-            <Plus className="size-4" aria-hidden="true" />
-            Add photo
-          </Button>
+        {uploadImages ? (
+          <label className="relative mt-5 flex min-h-36 cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border bg-muted/30 px-5 py-6 text-center transition-colors hover:bg-muted/60 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-ring">
+            <input
+              type="file"
+              accept=".png,.jpg,.jpeg,.gif,.webp,image/png,image/jpeg,image/gif,image/webp"
+              multiple
+              disabled={values.imageFiles.length >= 10}
+              onChange={(event) => {
+                addImageFiles(event.target.files);
+                event.target.value = "";
+              }}
+              className="absolute inset-0 cursor-pointer opacity-0 disabled:cursor-not-allowed"
+              aria-label="Choose vehicle photos"
+            />
+            <span className="flex size-10 items-center justify-center rounded-full bg-background text-primary">
+              <Upload className="size-5" aria-hidden="true" />
+            </span>
+            <span className="text-sm font-medium">
+              {values.imageFiles.length >= 10 ? "Photo limit reached" : "Choose photos to upload"}
+            </span>
+            <span className="text-xs text-muted-foreground">
+              PNG, JPG, GIF or WebP · up to 10 photos
+            </span>
+          </label>
+        ) : (
+          <div className="mt-5 flex flex-col gap-2 sm:flex-row">
+            <Input
+              value={newImage}
+              onChange={(event) => setNewImage(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  event.preventDefault();
+                  addImage();
+                }
+              }}
+              placeholder="https://example.com/photo.jpg"
+              aria-label="Image URL"
+            />
+            <Button type="button" variant="outline" onClick={addImage}>
+              <Plus className="size-4" aria-hidden="true" />
+              Add photo
+            </Button>
+          </div>
+        )}
+        <div className="mt-2 flex items-center justify-between gap-3">
+          <FieldError messages={fieldErrors["images"]} />
+          <span className="ml-auto shrink-0 text-xs text-muted-foreground">
+            {uploadImages ? values.imageFiles.length : values.images.length} / 10 photos
+          </span>
         </div>
-        <FieldError messages={fieldErrors["images"]} />
 
-        {values.images.length > 0 ? (
+        {photos.length > 0 ? (
           <ul className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {values.images.map((url, index) => (
-              <li key={url} className="overflow-hidden rounded-lg border border-border">
+            {photos.map((photo, index) => (
+              <li key={photo.key} className="overflow-hidden rounded-lg border border-border">
                 <div className="aspect-[4/3] bg-muted">
-                  <CarPhoto url={url} alt={`Vehicle photo ${index + 1}`} className="size-full" />
+                  {photo.url ? (
+                    <CarPhoto
+                      url={photo.url}
+                      alt={`Vehicle photo ${index + 1}`}
+                      className="size-full"
+                    />
+                  ) : (
+                    <div className="flex size-full items-center justify-center text-muted-foreground">
+                      <ImagePlus className="size-8" aria-hidden="true" />
+                    </div>
+                  )}
                 </div>
                 <div className="flex items-center justify-between gap-1 p-2">
-                  <span className="truncate text-xs text-muted-foreground">
-                    {index === 0 ? "Main photo" : `Photo ${index + 1}`}
+                  <span
+                    className="min-w-0 truncate text-xs text-muted-foreground"
+                    title={photo.name}
+                  >
+                    <span className="block font-medium text-foreground">
+                      {index === 0 ? "Main photo" : `Photo ${index + 1}`}
+                    </span>
+                    <span className="block truncate">{photo.name}</span>
                   </span>
                   <div className="flex shrink-0 items-center gap-1">
                     <Button
@@ -420,7 +525,7 @@ export function CarForm({
                       size="icon"
                       aria-label={`Move photo ${index + 1} later`}
                       onClick={() => move(index, 1)}
-                      disabled={index === values.images.length - 1}
+                      disabled={index === photos.length - 1}
                     >
                       <ArrowDown className="size-4" aria-hidden="true" />
                     </Button>
@@ -429,12 +534,19 @@ export function CarForm({
                       variant="ghost"
                       size="icon"
                       aria-label={`Remove photo ${index + 1}`}
-                      onClick={() =>
-                        set(
-                          "images",
-                          values.images.filter((image) => image !== url),
-                        )
-                      }
+                      onClick={() => {
+                        if (uploadImages) {
+                          set(
+                            "imageFiles",
+                            values.imageFiles.filter((_, photoIndex) => photoIndex !== index),
+                          );
+                        } else {
+                          set(
+                            "images",
+                            values.images.filter((_, photoIndex) => photoIndex !== index),
+                          );
+                        }
+                      }}
                     >
                       <Trash2 className="size-4" aria-hidden="true" />
                     </Button>

@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Users } from "lucide-react";
@@ -120,14 +120,21 @@ function AdminUsersPage() {
                           {formatDate(user.created_at)}
                         </TableCell>
                         <TableCell className="text-right">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            disabled={isSelf || mutation.isPending}
-                            onClick={() => setPending({ user, role: nextRole })}
-                          >
-                            {user.role === "admin" ? "Make standard user" : "Make administrator"}
-                          </Button>
+                          <div className="flex flex-wrap justify-end gap-2">
+                            <Button asChild variant="ghost" size="sm">
+                              <Link to="/admin/users/$userId" params={{ userId: String(user.id) }}>
+                                View details
+                              </Link>
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              disabled={isSelf || mutation.isPending}
+                              onClick={() => setPending({ user, role: nextRole })}
+                            >
+                              {user.role === "admin" ? "Make standard user" : "Make administrator"}
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     );

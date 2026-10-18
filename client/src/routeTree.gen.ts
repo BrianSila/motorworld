@@ -27,6 +27,7 @@ import { Route as AdminUsersRouteImport } from './routes/admin.users'
 import { Route as CarsIndexRouteImport } from './routes/cars.index'
 import { Route as CarsCarIdRouteImport } from './routes/cars.$carId'
 import { Route as SellIndexRouteImport } from './routes/sell.index'
+import { Route as AdminUsersUserIdRouteImport } from './routes/admin.users.$userId'
 import { Route as SellCarsIndexRouteImport } from './routes/sell.cars.index'
 import { Route as SellCarsNewRouteImport } from './routes/sell.cars.new'
 import { Route as SellCarsCarIdEditRouteImport } from './routes/sell.cars.$carId.edit'
@@ -121,6 +122,11 @@ const SellIndexRoute = SellIndexRouteImport.update({
   path: '/',
   getParentRoute: () => SellRoute,
 } as any)
+const AdminUsersUserIdRoute = AdminUsersUserIdRouteImport.update({
+  id: '/$userId',
+  path: '/$userId',
+  getParentRoute: () => AdminUsersRoute,
+} as any)
 const SellCarsIndexRoute = SellCarsIndexRouteImport.update({
   id: '/cars/',
   path: '/cars/',
@@ -150,12 +156,13 @@ export interface FileRoutesByFullPath {
   '/admin/cars': typeof AdminCarsRoute
   '/admin/enquiries': typeof AdminEnquiriesRoute
   '/admin/test-drives': typeof AdminTestDrivesRoute
-  '/admin/users': typeof AdminUsersRoute
+  '/admin/users': typeof AdminUsersRouteWithChildren
   '/cars/$carId': typeof CarsCarIdRoute
   '/account/': typeof AccountIndexRoute
   '/admin/': typeof AdminIndexRoute
   '/cars/': typeof CarsIndexRoute
   '/sell/': typeof SellIndexRoute
+  '/admin/users/$userId': typeof AdminUsersUserIdRoute
   '/sell/cars/new': typeof SellCarsNewRoute
   '/sell/cars/': typeof SellCarsIndexRoute
   '/sell/cars/$carId/edit': typeof SellCarsCarIdEditRoute
@@ -170,12 +177,13 @@ export interface FileRoutesByTo {
   '/admin/cars': typeof AdminCarsRoute
   '/admin/enquiries': typeof AdminEnquiriesRoute
   '/admin/test-drives': typeof AdminTestDrivesRoute
-  '/admin/users': typeof AdminUsersRoute
+  '/admin/users': typeof AdminUsersRouteWithChildren
   '/cars/$carId': typeof CarsCarIdRoute
   '/account': typeof AccountIndexRoute
   '/admin': typeof AdminIndexRoute
   '/cars': typeof CarsIndexRoute
   '/sell': typeof SellIndexRoute
+  '/admin/users/$userId': typeof AdminUsersUserIdRoute
   '/sell/cars/new': typeof SellCarsNewRoute
   '/sell/cars': typeof SellCarsIndexRoute
   '/sell/cars/$carId/edit': typeof SellCarsCarIdEditRoute
@@ -194,12 +202,13 @@ export interface FileRoutesById {
   '/admin/cars': typeof AdminCarsRoute
   '/admin/enquiries': typeof AdminEnquiriesRoute
   '/admin/test-drives': typeof AdminTestDrivesRoute
-  '/admin/users': typeof AdminUsersRoute
+  '/admin/users': typeof AdminUsersRouteWithChildren
   '/cars/$carId': typeof CarsCarIdRoute
   '/account/': typeof AccountIndexRoute
   '/admin/': typeof AdminIndexRoute
   '/cars/': typeof CarsIndexRoute
   '/sell/': typeof SellIndexRoute
+  '/admin/users/$userId': typeof AdminUsersUserIdRoute
   '/sell/cars/new': typeof SellCarsNewRoute
   '/sell/cars/': typeof SellCarsIndexRoute
   '/sell/cars/$carId/edit': typeof SellCarsCarIdEditRoute
@@ -225,6 +234,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/cars/'
     | '/sell/'
+    | '/admin/users/$userId'
     | '/sell/cars/new'
     | '/sell/cars/'
     | '/sell/cars/$carId/edit'
@@ -245,6 +255,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/cars'
     | '/sell'
+    | '/admin/users/$userId'
     | '/sell/cars/new'
     | '/sell/cars'
     | '/sell/cars/$carId/edit'
@@ -268,6 +279,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/cars/'
     | '/sell/'
+    | '/admin/users/$userId'
     | '/sell/cars/new'
     | '/sell/cars/'
     | '/sell/cars/$carId/edit'
@@ -412,6 +424,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SellIndexRouteImport
       parentRoute: typeof SellRoute
     }
+    '/admin/users/$userId': {
+      id: '/admin/users/$userId'
+      path: '/$userId'
+      fullPath: '/admin/users/$userId'
+      preLoaderRoute: typeof AdminUsersUserIdRouteImport
+      parentRoute: typeof AdminUsersRoute
+    }
     '/sell/cars/': {
       id: '/sell/cars/'
       path: '/cars'
@@ -453,11 +472,23 @@ const AccountRouteChildren: AccountRouteChildren = {
 const AccountRouteWithChildren =
   AccountRoute._addFileChildren(AccountRouteChildren)
 
+interface AdminUsersRouteChildren {
+  AdminUsersUserIdRoute: typeof AdminUsersUserIdRoute
+}
+
+const AdminUsersRouteChildren: AdminUsersRouteChildren = {
+  AdminUsersUserIdRoute: AdminUsersUserIdRoute,
+}
+
+const AdminUsersRouteWithChildren = AdminUsersRoute._addFileChildren(
+  AdminUsersRouteChildren,
+)
+
 interface AdminRouteChildren {
   AdminCarsRoute: typeof AdminCarsRoute
   AdminEnquiriesRoute: typeof AdminEnquiriesRoute
   AdminTestDrivesRoute: typeof AdminTestDrivesRoute
-  AdminUsersRoute: typeof AdminUsersRoute
+  AdminUsersRoute: typeof AdminUsersRouteWithChildren
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
@@ -465,7 +496,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminCarsRoute: AdminCarsRoute,
   AdminEnquiriesRoute: AdminEnquiriesRoute,
   AdminTestDrivesRoute: AdminTestDrivesRoute,
-  AdminUsersRoute: AdminUsersRoute,
+  AdminUsersRoute: AdminUsersRouteWithChildren,
   AdminIndexRoute: AdminIndexRoute,
 }
 

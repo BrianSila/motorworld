@@ -9,13 +9,13 @@ export const Route = createFileRoute("/sell/")({
       {
         name: "description",
         content:
-          "List your car with Simatei Motorworld: add photo links, set your price and manage availability from your seller dashboard.",
+          "List your car with Simatei Motorworld: upload photos, set your price and manage availability from your seller dashboard.",
       },
       { property: "og:title", content: "Sell your vehicle — Simatei Motorworld" },
       {
         property: "og:description",
         content:
-          "List your car with Simatei Motorworld: add photo links, set your price and manage availability from your seller dashboard.",
+          "List your car with Simatei Motorworld: upload photos, set your price and manage availability from your seller dashboard.",
       },
     ],
   }),
@@ -26,7 +26,7 @@ const steps = [
   {
     icon: Images,
     title: "Add your listing",
-    body: "Enter the make, model, year, price and condition, then paste up to 10 photo links and choose the main image.",
+    body: "Enter the make, model, year, price and condition, then upload up to 10 photos and choose the main image.",
   },
   {
     icon: ListChecks,
@@ -82,8 +82,7 @@ function SellLandingPage() {
       </ol>
 
       <p className="mt-10 rounded-lg border border-border bg-muted/30 p-4 text-sm text-muted-foreground">
-        Photos are added as web links — there's no file upload, so host your images anywhere public
-        and paste the URLs.
+        Upload up to 10 PNG, JPG, GIF or WebP photos directly with your listing.
       </p>
     </div>
   );

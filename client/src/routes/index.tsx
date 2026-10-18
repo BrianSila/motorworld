@@ -146,8 +146,8 @@ function HomePage() {
             <p className="eyebrow">Sell with us</p>
             <h2 className="mt-1 text-3xl heading-xl">List your vehicle to thousands of buyers</h2>
             <p className="mt-4 text-sm text-muted-foreground">
-              Publish your listing with image links, manage availability, mark vehicles as sold and
-              track the test-drive requests that come in — all from your seller dashboard.
+              Publish your listing with uploaded photos, manage availability, mark vehicles as sold
+              and track the test-drive requests that come in — all from your seller dashboard.
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
               <Button asChild>
@@ -160,7 +160,7 @@ function HomePage() {
           </div>
           <ul className="space-y-4 text-sm">
             {[
-              "Up to 10 image links per listing with a chosen primary photo.",
+              "Upload up to 10 photos per listing and choose a primary image.",
               "Availability and sold status controls that buyers see instantly.",
               "Enquiries and test-drive requests tied to each vehicle.",
             ].map((point) => (

@@ -6,7 +6,7 @@
 
 /*
  * Simatei Motorworld design system.
- * Premium automotive marketplace: graphite surfaces, molten-amber accent.
+ * Automotive marketplace: white surfaces, red primary actions, black secondary actions.
  * All colors are oklch semantic tokens — never hardcode colors in components.
  */
 
@@ -57,53 +57,53 @@
   --color-sidebar-ring: var(--sidebar-ring);
   --font-display: "Barlow Condensed", "Barlow", sans-serif;
   --font-sans: "Barlow", ui-sans-serif, system-ui, sans-serif;
-  --shadow-plate: 0 1px 0 0 oklch(1 0 0 / 6%) inset, 0 18px 40px -24px oklch(0 0 0 / 55%);
-  --shadow-lift: 0 24px 60px -30px oklch(0 0 0 / 65%);
+  --shadow-plate: 0 1px 0 0 oklch(1 0 0 / 80%) inset, 0 18px 40px -24px oklch(0 0 0 / 18%);
+  --shadow-lift: 0 24px 60px -30px oklch(0 0 0 / 24%);
 }
 
 :root {
   --radius: 0.5rem;
-  --background: oklch(0.16 0.008 250);
-  --foreground: oklch(0.97 0.003 250);
-  --card: oklch(0.21 0.009 250);
-  --card-foreground: oklch(0.97 0.003 250);
-  --popover: oklch(0.2 0.009 250);
-  --popover-foreground: oklch(0.97 0.003 250);
-  --primary: oklch(0.76 0.166 62);
-  --primary-foreground: oklch(0.18 0.02 60);
-  --secondary: oklch(0.27 0.01 250);
-  --secondary-foreground: oklch(0.96 0.003 250);
-  --muted: oklch(0.25 0.009 250);
-  --muted-foreground: oklch(0.7 0.012 250);
-  --accent: oklch(0.3 0.012 250);
-  --accent-foreground: oklch(0.97 0.003 250);
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.16 0.008 250);
+  --card: oklch(0.99 0.002 250);
+  --card-foreground: oklch(0.16 0.008 250);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.16 0.008 250);
+  --primary: oklch(0.55 0.22 27);
+  --primary-foreground: oklch(0.99 0.005 20);
+  --secondary: oklch(0.95 0.006 250);
+  --secondary-foreground: oklch(0.16 0.008 250);
+  --muted: oklch(0.96 0.004 250);
+  --muted-foreground: oklch(0.48 0.012 250);
+  --accent: oklch(0.94 0.012 27);
+  --accent-foreground: oklch(0.16 0.008 250);
   --destructive: oklch(0.58 0.21 22);
   --destructive-foreground: oklch(0.98 0.005 20);
   --success: oklch(0.66 0.15 155);
   --success-foreground: oklch(0.16 0.02 155);
   --warning: oklch(0.79 0.14 85);
   --warning-foreground: oklch(0.2 0.03 85);
-  --border: oklch(0.31 0.01 250);
-  --input: oklch(0.31 0.01 250);
-  --ring: oklch(0.76 0.166 62);
-  --chart-1: oklch(0.76 0.166 62);
+  --border: oklch(0.88 0.006 250);
+  --input: oklch(0.88 0.006 250);
+  --ring: oklch(0.55 0.22 27);
+  --chart-1: oklch(0.55 0.22 27);
   --chart-2: oklch(0.66 0.15 155);
   --chart-3: oklch(0.62 0.13 245);
   --chart-4: oklch(0.79 0.14 85);
   --chart-5: oklch(0.58 0.21 22);
-  --sidebar: oklch(0.19 0.009 250);
-  --sidebar-foreground: oklch(0.97 0.003 250);
-  --sidebar-primary: oklch(0.76 0.166 62);
-  --sidebar-primary-foreground: oklch(0.18 0.02 60);
-  --sidebar-accent: oklch(0.27 0.01 250);
-  --sidebar-accent-foreground: oklch(0.97 0.003 250);
-  --sidebar-border: oklch(0.31 0.01 250);
-  --sidebar-ring: oklch(0.76 0.166 62);
+  --sidebar: oklch(0.99 0.002 250);
+  --sidebar-foreground: oklch(0.16 0.008 250);
+  --sidebar-primary: oklch(0.55 0.22 27);
+  --sidebar-primary-foreground: oklch(0.99 0.005 20);
+  --sidebar-accent: oklch(0.95 0.006 250);
+  --sidebar-accent-foreground: oklch(0.16 0.008 250);
+  --sidebar-border: oklch(0.88 0.006 250);
+  --sidebar-ring: oklch(0.55 0.22 27);
 }
 
 .dark {
-  --background: oklch(0.16 0.008 250);
-  --foreground: oklch(0.97 0.003 250);
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.16 0.008 250);
 }
 
 @layer base {
@@ -144,10 +144,6 @@
 
 @utility surface-grid {
   background-image:
-    linear-gradient(to bottom, oklch(0.16 0.008 250 / 0.9), oklch(0.16 0.008 250 / 0.98)),
-    repeating-linear-gradient(
-      90deg,
-      oklch(1 0 0 / 0.03) 0 1px,
-      transparent 1px 64px
-    );
+    linear-gradient(to bottom, oklch(1 0 0 / 0.9), oklch(1 0 0 / 0.98)),
+    repeating-linear-gradient(90deg, oklch(0.16 0.008 250 / 0.04) 0 1px, transparent 1px 64px);
 }

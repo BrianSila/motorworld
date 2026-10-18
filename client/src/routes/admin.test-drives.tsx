@@ -1,11 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { CalendarClock } from "lucide-react";
 import { EmptyState, ErrorState, RowsSkeleton } from "@/components/common/states";
 import { Pager } from "@/components/common/Pagination";
 import { TestDriveRow } from "@/routes/account.test-drives";
-import * as testDrivesApi from "@/lib/api/testDrives";
+import * as adminApi from "@/lib/api/admin";
 
 export const Route = createFileRoute("/admin/test-drives")({
   head: () => ({
@@ -26,7 +26,8 @@ function AdminTestDrivesPage() {
 
   const query = useQuery({
     queryKey: ["test-drives", "admin", page],
-    queryFn: () => testDrivesApi.listMyTestDrives({ page, limit: LIMIT }),
+    queryFn: () => adminApi.listAllTestDrives({ page, limit: LIMIT }),
+    placeholderData: keepPreviousData,
   });
 
   return (
@@ -41,7 +42,7 @@ function AdminTestDrivesPage() {
           <RowsSkeleton rows={5} />
         ) : query.isError ? (
           <ErrorState error={query.error} onRetry={() => void query.refetch()} />
-        ) : query.data.test_drives.length === 0 ? (
+        ) : (query.data.test_drives ?? []).length === 0 ? (
           <EmptyState
             icon={<CalendarClock className="size-8" aria-hidden="true" />}
             title="No test drives booked"
