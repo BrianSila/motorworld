@@ -44,6 +44,7 @@ export type Car = {
   is_available: boolean;
   is_sold: boolean;
   views: number;
+  favourites_count?: number;
   seller_id: number;
   created_at: string;
   images: CarImage[];

@@ -264,11 +264,33 @@ export function SiteShell({ children }: { children: ReactNode }) {
       <main className="flex-1">{children}</main>
 
       <footer className="border-t border-border bg-card/40">
-        <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 px-4 py-10 sm:flex-row sm:items-center sm:justify-between">
-          <Brand />
-          <p className="text-sm text-muted-foreground">
-            Kenya&apos;s trusted vehicle marketplace. Prices in KES.
-          </p>
+        <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-10 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-1">
+            <Brand />
+            <p className="text-xs text-muted-foreground mt-1">
+              Kenya&apos;s trusted vehicle marketplace. Prices in KES.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+            <div className="flex items-center gap-1.5">
+              <span className="font-semibold text-foreground">Admin Hotline:</span>
+              <a href="tel:+254740892332" className="hover:text-primary font-mono font-bold transition-colors">
+                +254 740 892 332
+              </a>
+            </div>
+            <span>•</span>
+            <a
+              href="https://wa.me/254740892332?text=Hi%20Simatei%20Admin%2C%20I%20have%20an%20enquiry%20regarding%20vehicles%20on%20Simatei%20Motorworld."
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 hover:underline font-semibold"
+            >
+              <MessageSquare className="size-3.5" aria-hidden="true" />
+              <span>WhatsApp Admin</span>
+            </a>
+          </div>
+
           <nav aria-label="Footer" className="flex gap-4 text-sm text-muted-foreground">
             <Link to="/cars" className="hover:text-foreground">
               Inventory

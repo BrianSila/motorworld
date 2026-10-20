@@ -51,6 +51,8 @@ export function DirectCallDialog({
   const currentUrl = typeof window !== "undefined" ? window.location.href : "";
   const whatsappMsg = `Hi ${sellerName}, I am interested in your ${carTitle} listed on Simatei Motorworld (${currentUrl}). Is it still available?`;
   const sellerWhatsApp = toWhatsAppUrl(sellerPhone, whatsappMsg);
+  const adminWhatsAppMsg = `Hi Simatei Admin, I would like assistance with the ${carTitle} listed on Simatei Motorworld (${currentUrl}).`;
+  const adminWhatsApp = toWhatsAppUrl(adminPhone, adminWhatsAppMsg);
 
   function copyToClipboard(text: string, type: "seller" | "admin") {
     void navigator.clipboard.writeText(text);
@@ -207,11 +209,21 @@ export function DirectCallDialog({
                 </Button>
               </div>
 
-              <div className="mt-3">
-                <Button asChild variant="outline" className="w-full gap-2 border-primary/30 text-primary hover:bg-primary/10">
+              <div className="mt-3 grid grid-cols-2 gap-2">
+                <Button asChild variant="outline" className="gap-2 border-primary/30 text-primary hover:bg-primary/10">
                   <a href={`tel:${normalizeKenyaPhone(adminPhone)}`}>
                     <PhoneCall className="size-4" aria-hidden="true" />
-                    <span>Call Simatei Admin Concierge</span>
+                    <span>Call Admin</span>
+                  </a>
+                </Button>
+                <Button
+                  asChild
+                  variant="outline"
+                  className="gap-2 border-emerald-600/30 text-emerald-700 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-950/40"
+                >
+                  <a href={adminWhatsApp} target="_blank" rel="noopener noreferrer">
+                    <MessageCircle className="size-4" aria-hidden="true" />
+                    <span>WhatsApp</span>
                   </a>
                 </Button>
               </div>
@@ -236,6 +248,8 @@ export function SidebarDirectContact({ car }: { car: Car }) {
   const currentUrl = typeof window !== "undefined" ? window.location.href : "";
   const whatsappMsg = `Hi ${sellerName}, I am interested in your ${carTitle} on Simatei Motorworld (${currentUrl}). Is it still available?`;
   const sellerWhatsApp = toWhatsAppUrl(sellerPhone, whatsappMsg);
+  const adminWhatsAppMsg = `Hi Simatei Admin, I would like assistance with the ${carTitle} on Simatei Motorworld (${currentUrl}).`;
+  const adminWhatsApp = toWhatsAppUrl(adminPhone, adminWhatsAppMsg);
 
   function copyNumber(phone: string) {
     void navigator.clipboard.writeText(phone);
@@ -309,13 +323,35 @@ export function SidebarDirectContact({ car }: { car: Car }) {
         </div>
       ) : null}
 
-      {/* Admin helpline button */}
-      <Button asChild variant="outline" size="sm" className="w-full gap-2 text-xs border-dashed">
-        <a href={`tel:${normalizeKenyaPhone(adminPhone)}`}>
-          <ShieldCheck className="size-3.5 text-primary" aria-hidden="true" />
-          <span>Call Admin Desk: {formatPhoneDisplay(adminPhone)}</span>
-        </a>
-      </Button>
+      {/* Admin helpline & WhatsApp buttons */}
+      <div className="rounded-lg border border-dashed border-border bg-muted/30 p-2.5">
+        <div className="flex items-center justify-between text-[11px] text-muted-foreground mb-1.5 font-medium">
+          <span className="flex items-center gap-1">
+            <ShieldCheck className="size-3 text-primary" aria-hidden="true" />
+            Admin Helpline
+          </span>
+          <span className="font-mono text-foreground font-semibold">{formatPhoneDisplay(adminPhone)}</span>
+        </div>
+        <div className="grid grid-cols-2 gap-1.5">
+          <Button asChild variant="outline" size="sm" className="h-7 text-xs gap-1 border-primary/20 text-primary hover:bg-primary/5">
+            <a href={`tel:${normalizeKenyaPhone(adminPhone)}`}>
+              <Phone className="size-3" aria-hidden="true" />
+              <span>Call</span>
+            </a>
+          </Button>
+          <Button
+            asChild
+            variant="outline"
+            size="sm"
+            className="h-7 text-xs gap-1 border-emerald-600/30 text-emerald-700 hover:bg-emerald-50 dark:text-emerald-400"
+          >
+            <a href={adminWhatsApp} target="_blank" rel="noopener noreferrer">
+              <MessageCircle className="size-3" aria-hidden="true" />
+              <span>WhatsApp</span>
+            </a>
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }
@@ -335,6 +371,8 @@ export function DirectContactCard({ car }: { car: Car }) {
   const currentUrl = typeof window !== "undefined" ? window.location.href : "";
   const whatsappMsg = `Hi ${sellerName}, I am interested in your ${carTitle} listed on Simatei Motorworld (${currentUrl}). Is it still available?`;
   const sellerWhatsApp = toWhatsAppUrl(sellerPhone, whatsappMsg);
+  const adminWhatsAppMsg = `Hi Simatei Admin, I am interested in the ${carTitle} listed on Simatei Motorworld (${currentUrl}). Can you assist me with verification, title inspection, and secure purchase?`;
+  const adminWhatsApp = toWhatsAppUrl(adminPhone, adminWhatsAppMsg);
 
   function copy(phone: string, type: "seller" | "admin") {
     void navigator.clipboard.writeText(phone);
@@ -502,11 +540,23 @@ export function DirectContactCard({ car }: { car: Car }) {
             </p>
           </div>
 
-          <div className="mt-5">
+          <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-2">
             <Button asChild variant="outline" className="w-full gap-2 border-primary/30 text-primary hover:bg-primary/10">
               <a href={`tel:${normalizeKenyaPhone(adminPhone)}`}>
                 <PhoneCall className="size-4" aria-hidden="true" />
                 <span>Call Admin Directly</span>
+              </a>
+            </Button>
+
+            <Button
+              asChild
+              variant="outline"
+              className="w-full border-emerald-600/30 text-emerald-700 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-950/40 gap-2"
+            >
+              <a href={adminWhatsApp} target="_blank" rel="noopener noreferrer">
+                <MessageCircle className="size-4" aria-hidden="true" />
+                <span>Chat Admin on WhatsApp</span>
+                <ExternalLink className="size-3.5 ml-auto opacity-60" aria-hidden="true" />
               </a>
             </Button>
           </div>

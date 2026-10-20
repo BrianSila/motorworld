@@ -40,9 +40,20 @@ def popular_cars(limit=10):
     fav_car_ids = [row[0] for row in fav_counts]
     fav_cars = Car.query.filter(Car.id.in_(fav_car_ids)).all() if fav_car_ids else []
 
+    # Map fav counts to fav_cars so we know the exact count
+    fav_count_map = {row[0]: row[1] for row in fav_counts}
+
+    def serialize_car(car, extra_fields=None):
+        data = car.to_dict(include_images=True)
+        if extra_fields:
+            data.update(extra_fields)
+        return data
+
     return {
-        "most_viewed": [c.to_dict(include_images=False) for c in by_views],
-        "most_favourited": [c.to_dict(include_images=False) for c in fav_cars],
+        "most_viewed": [serialize_car(c) for c in by_views],
+        "most_favourited": [
+            serialize_car(c, {"favourites_count": fav_count_map.get(c.id, 0)}) for c in fav_cars
+        ],
     }
     
 
