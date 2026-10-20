@@ -1,7 +1,21 @@
 import { useState } from "react";
 import type { ReactNode } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Car, Heart, LayoutDashboard, LogOut, Menu, ShieldCheck, User2 } from "lucide-react";
+import {
+  CalendarClock,
+  Car,
+  Heart,
+  Home,
+  LayoutDashboard,
+  LogIn,
+  LogOut,
+  Menu,
+  MessageSquare,
+  ShieldCheck,
+  Tag,
+  User2,
+  UserPlus,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -19,9 +33,9 @@ import { toast } from "sonner";
 import companyLogo from "@/assets/company-logo.jpeg";
 
 const navLinks = [
-  { to: "/", label: "Home" },
-  { to: "/cars", label: "Inventory" },
-  { to: "/sell", label: "Sell" },
+  { to: "/", label: "Home", icon: Home },
+  { to: "/cars", label: "Inventory", icon: Car },
+  { to: "/sell", label: "Sell", icon: Tag },
 ] as const;
 
 function Brand() {
@@ -73,10 +87,14 @@ function AccountMenu() {
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
-          <Link to="/account/enquiries">Enquiries</Link>
+          <Link to="/account/enquiries">
+            <MessageSquare className="size-4" aria-hidden="true" /> Enquiries
+          </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
-          <Link to="/account/test-drives">Test drives</Link>
+          <Link to="/account/test-drives">
+            <CalendarClock className="size-4" aria-hidden="true" /> Test drives
+          </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
@@ -101,7 +119,7 @@ function AccountMenu() {
 }
 
 export function SiteShell({ children }: { children: ReactNode }) {
-  const { isAuthenticated, isReady } = useAuth();
+  const { isAuthenticated, isReady, isAdmin } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
@@ -152,49 +170,86 @@ export function SiteShell({ children }: { children: ReactNode }) {
                       key={link.to}
                       to={link.to}
                       onClick={() => setMobileOpen(false)}
-                      className="rounded-md px-3 py-2 text-sm font-medium hover:bg-accent"
+                      activeOptions={{ exact: link.to === "/" }}
+                      activeProps={{ className: "bg-primary/10 text-primary font-semibold" }}
+                      className="rounded-md px-3 py-2.5 text-sm font-medium hover:bg-accent flex items-center gap-2.5 transition-colors"
                     >
-                      {link.label}
+                      <link.icon className="size-4 shrink-0" aria-hidden="true" />
+                      <span>{link.label}</span>
                     </Link>
                   ))}
+
+                  <div className="my-2 border-t border-border" />
+
                   {isAuthenticated ? (
                     <>
                       <Link
                         to="/account"
                         onClick={() => setMobileOpen(false)}
-                        className="rounded-md px-3 py-2 text-sm font-medium hover:bg-accent"
+                        className="rounded-md px-3 py-2 text-sm font-medium hover:bg-accent flex items-center gap-2.5"
                       >
+                        <User2 className="size-4" aria-hidden="true" />
                         My account
                       </Link>
                       <Link
                         to="/account/favourites"
                         onClick={() => setMobileOpen(false)}
-                        className="rounded-md px-3 py-2 text-sm font-medium hover:bg-accent"
+                        className="rounded-md px-3 py-2 text-sm font-medium hover:bg-accent flex items-center gap-2.5"
                       >
+                        <Heart className="size-4" aria-hidden="true" />
                         Favourites
+                      </Link>
+                      <Link
+                        to="/account/enquiries"
+                        onClick={() => setMobileOpen(false)}
+                        className="rounded-md px-3 py-2 text-sm font-medium hover:bg-accent flex items-center gap-2.5"
+                      >
+                        <MessageSquare className="size-4" aria-hidden="true" />
+                        Enquiries
+                      </Link>
+                      <Link
+                        to="/account/test-drives"
+                        onClick={() => setMobileOpen(false)}
+                        className="rounded-md px-3 py-2 text-sm font-medium hover:bg-accent flex items-center gap-2.5"
+                      >
+                        <CalendarClock className="size-4" aria-hidden="true" />
+                        Test drives
                       </Link>
                       <Link
                         to="/sell/cars"
                         onClick={() => setMobileOpen(false)}
-                        className="rounded-md px-3 py-2 text-sm font-medium hover:bg-accent"
+                        className="rounded-md px-3 py-2 text-sm font-medium hover:bg-accent flex items-center gap-2.5"
                       >
+                        <LayoutDashboard className="size-4" aria-hidden="true" />
                         My listings
                       </Link>
+                      {isAdmin ? (
+                        <Link
+                          to="/admin"
+                          onClick={() => setMobileOpen(false)}
+                          className="rounded-md px-3 py-2 text-sm font-medium hover:bg-accent flex items-center gap-2.5"
+                        >
+                          <ShieldCheck className="size-4" aria-hidden="true" />
+                          Admin
+                        </Link>
+                      ) : null}
                     </>
                   ) : (
                     <>
                       <Link
                         to="/login"
                         onClick={() => setMobileOpen(false)}
-                        className="rounded-md px-3 py-2 text-sm font-medium hover:bg-accent"
+                        className="rounded-md px-3 py-2 text-sm font-medium hover:bg-accent flex items-center gap-2.5"
                       >
+                        <LogIn className="size-4" aria-hidden="true" />
                         Sign in
                       </Link>
                       <Link
                         to="/register"
                         onClick={() => setMobileOpen(false)}
-                        className="rounded-md px-3 py-2 text-sm font-medium hover:bg-accent"
+                        className="rounded-md px-3 py-2 text-sm font-medium hover:bg-accent flex items-center gap-2.5"
                       >
+                        <UserPlus className="size-4" aria-hidden="true" />
                         Create account
                       </Link>
                     </>

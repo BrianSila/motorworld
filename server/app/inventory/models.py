@@ -26,6 +26,7 @@ class Car(db.Model):
     seller_id = db.Column(
         db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
+    contact_phone = db.Column(db.String(30), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
     updated_at = db.Column(
         db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
@@ -56,6 +57,14 @@ class Car(db.Model):
     )
 
     def to_dict(self, include_images=True):
+        from flask import current_app
+
+        admin_phone = "+254 740 892 332"
+        try:
+            admin_phone = current_app.config.get("ADMIN_CONTACT_PHONE", "+254 740 892 332")
+        except Exception:
+            pass
+
         data = {
             "id": self.id,
             "make": self.make,
@@ -70,11 +79,23 @@ class Car(db.Model):
             "color": self.color,
             "description": self.description,
             "location": self.location,
+            "contact_phone": self.contact_phone,
             "is_negotiable": self.is_negotiable,
             "is_available": self.is_available,
             "is_sold": self.is_sold,
             "views": self.views,
             "seller_id": self.seller_id,
+            "seller": (
+                {
+                    "id": self.seller.id,
+                    "name": self.seller.name,
+                    "phone": self.seller.phone,
+                    "role": self.seller.role,
+                }
+                if self.seller
+                else None
+            ),
+            "admin_phone": admin_phone,
             "created_at": self.created_at.isoformat(),
         }
         if include_images:

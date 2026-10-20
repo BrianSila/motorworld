@@ -192,43 +192,101 @@ function CarsPage() {
         </div>
       </div>
 
-      <form
-        className="mt-6 flex gap-2"
-        onSubmit={(event) => {
-          event.preventDefault();
-          update({ q: term.trim() || undefined });
-        }}
-      >
-        <div className="relative flex-1">
-          <Search
-            className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
-            aria-hidden="true"
-          />
-          <Input
-            value={term}
-            onChange={(event) => setTerm(event.target.value)}
-            placeholder="Search make, model or keyword"
-            aria-label="Search vehicles"
-            className="pl-9"
-          />
-        </div>
-        <Button type="submit">Search</Button>
-      </form>
+      {/* Modern Search & Quick Filter Bar */}
+      <div className="mt-6 space-y-3">
+        <form
+          className="flex flex-col sm:flex-row gap-2.5 rounded-2xl border border-border/80 bg-card p-2 shadow-xs"
+          onSubmit={(event) => {
+            event.preventDefault();
+            update({ q: term.trim() || undefined });
+          }}
+        >
+          <div className="relative flex-1">
+            <Search
+              className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+              aria-hidden="true"
+            />
+            <Input
+              value={term}
+              onChange={(event) => setTerm(event.target.value)}
+              placeholder="Search make, model, year, trim or keyword..."
+              aria-label="Search vehicles"
+              className="h-11 pl-10 pr-9 border-0 bg-transparent shadow-none focus-visible:ring-0 text-sm"
+            />
+            {term ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setTerm("");
+                  update({ q: undefined });
+                }}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                aria-label="Clear search query"
+              >
+                <X className="size-4" />
+              </button>
+            ) : null}
+          </div>
+          <Button type="submit" className="h-11 px-6 font-semibold shadow-xs">
+            Search
+          </Button>
+        </form>
 
-      <div className="mt-8 grid gap-8 lg:grid-cols-[18rem_1fr]">
+        {/* Quick Make Chips */}
+        {options.data?.makes && options.data.makes.length > 0 ? (
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
+            <span className="text-muted-foreground font-medium shrink-0 pr-1">Popular:</span>
+            <button
+              type="button"
+              onClick={() => update({ make: undefined })}
+              className={`rounded-full px-3 py-1 font-semibold transition-colors shrink-0 ${
+                !search.make
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted/80 text-muted-foreground hover:bg-muted hover:text-foreground"
+              }`}
+            >
+              All Makes
+            </button>
+            {options.data.makes.slice(0, 7).map((make) => (
+              <button
+                key={make}
+                type="button"
+                onClick={() => update({ make: search.make === make ? undefined : make })}
+                className={`rounded-full px-3 py-1 font-semibold transition-colors shrink-0 ${
+                  search.make === make
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-muted/80 text-muted-foreground hover:bg-muted hover:text-foreground"
+                }`}
+              >
+                {make}
+              </button>
+            ))}
+          </div>
+        ) : null}
+      </div>
+
+      <div className="mt-6 grid gap-8 lg:grid-cols-[18rem_1fr]">
         <aside className="hidden lg:block">
-          <div className="sticky top-24 rounded-lg border border-border bg-card p-5">
-            <div className="flex items-center justify-between">
-              <h2 className="text-sm font-semibold uppercase tracking-wide">Filters</h2>
+          <div className="sticky top-24 rounded-2xl border border-border/80 bg-card p-5 shadow-xs">
+            <div className="flex items-center justify-between pb-3 border-b border-border/60">
+              <div className="flex items-center gap-2">
+                <Filter className="size-4 text-primary" aria-hidden="true" />
+                <h2 className="text-sm font-bold uppercase tracking-wider">Filters</h2>
+                {activeCount > 0 ? (
+                  <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-bold text-primary">
+                    {activeCount}
+                  </span>
+                ) : null}
+              </div>
               {activeCount > 0 ? (
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => void navigate({ to: "/cars", search: {} })}
-                  className="h-auto p-1 text-xs"
+                  className="h-auto px-2 py-1 text-xs text-muted-foreground hover:text-foreground"
                 >
-                  <X className="size-3" aria-hidden="true" />
-                  Clear
+                  <X className="size-3 mr-1" aria-hidden="true" />
+                  Reset
                 </Button>
               ) : null}
             </div>
@@ -237,6 +295,97 @@ function CarsPage() {
         </aside>
 
         <div>
+          {/* Active filter badges row */}
+          {activeCount > 0 ? (
+            <div className="mb-4 flex flex-wrap items-center gap-2">
+              <span className="text-xs font-medium text-muted-foreground">Active filters:</span>
+              {search.make ? (
+                <span className="inline-flex items-center gap-1 rounded-full border border-border bg-card px-2.5 py-0.5 text-xs font-medium">
+                  Make: {search.make}
+                  <button
+                    type="button"
+                    onClick={() => update({ make: undefined })}
+                    aria-label={`Remove make ${search.make}`}
+                  >
+                    <X className="size-3" />
+                  </button>
+                </span>
+              ) : null}
+              {search.model ? (
+                <span className="inline-flex items-center gap-1 rounded-full border border-border bg-card px-2.5 py-0.5 text-xs font-medium">
+                  Model: {search.model}
+                  <button
+                    type="button"
+                    onClick={() => update({ model: undefined })}
+                    aria-label={`Remove model ${search.model}`}
+                  >
+                    <X className="size-3" />
+                  </button>
+                </span>
+              ) : null}
+              {search.condition ? (
+                <span className="inline-flex items-center gap-1 rounded-full border border-border bg-card px-2.5 py-0.5 text-xs font-medium">
+                  {search.condition}
+                  <button
+                    type="button"
+                    onClick={() => update({ condition: undefined })}
+                    aria-label={`Remove condition ${search.condition}`}
+                  >
+                    <X className="size-3" />
+                  </button>
+                </span>
+              ) : null}
+              {search.fuel_type ? (
+                <span className="inline-flex items-center gap-1 rounded-full border border-border bg-card px-2.5 py-0.5 text-xs font-medium">
+                  {search.fuel_type}
+                  <button
+                    type="button"
+                    onClick={() => update({ fuel_type: undefined })}
+                    aria-label={`Remove fuel ${search.fuel_type}`}
+                  >
+                    <X className="size-3" />
+                  </button>
+                </span>
+              ) : null}
+              {search.transmission ? (
+                <span className="inline-flex items-center gap-1 rounded-full border border-border bg-card px-2.5 py-0.5 text-xs font-medium">
+                  {search.transmission}
+                  <button
+                    type="button"
+                    onClick={() => update({ transmission: undefined })}
+                    aria-label={`Remove transmission ${search.transmission}`}
+                  >
+                    <X className="size-3" />
+                  </button>
+                </span>
+              ) : null}
+              {search.q ? (
+                <span className="inline-flex items-center gap-1 rounded-full border border-border bg-card px-2.5 py-0.5 text-xs font-medium">
+                  Keyword: &quot;{search.q}&quot;
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setTerm("");
+                      update({ q: undefined });
+                    }}
+                    aria-label="Remove search query"
+                  >
+                    <X className="size-3" />
+                  </button>
+                </span>
+              ) : null}
+              <button
+                type="button"
+                onClick={() => {
+                  setTerm("");
+                  void navigate({ to: "/cars", search: {} });
+                }}
+                className="text-xs font-semibold text-primary hover:underline ml-1"
+              >
+                Clear all
+              </button>
+            </div>
+          ) : null}
           {list.isPending ? (
             <CarGridSkeleton count={6} />
           ) : list.isError ? (

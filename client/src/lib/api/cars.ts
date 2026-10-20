@@ -54,6 +54,7 @@ export type CarPayload = {
   color?: string | null | undefined;
   description?: string | null | undefined;
   location?: string | null | undefined;
+  contact_phone?: string | null | undefined;
   is_negotiable: boolean;
   images: string[];
 };

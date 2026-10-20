@@ -23,6 +23,7 @@ class BaseConfig:
     BCRYPT_ROUNDS = int(os.getenv("BCRYPT_ROUNDS", 10))
     BUSINESS_HOURS_START = 8
     BUSINESS_HOURS_END = 18
+    ADMIN_CONTACT_PHONE = os.getenv("ADMIN_CONTACT_PHONE", "+254 740 892 332")
 
 
 class DevelopmentConfig(BaseConfig):

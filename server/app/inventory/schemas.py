@@ -33,6 +33,7 @@ class CarCreateSchema(Schema):
     color = fields.Str(allow_none=True, validate=validate.Length(max=30))
     description = fields.Str(allow_none=True, validate=validate.Length(max=2000))
     location = fields.Str(required=True, validate=validate.Length(max=100))
+    contact_phone = fields.Str(allow_none=True, validate=validate.Length(max=30))
     is_negotiable = fields.Bool(load_default=False)
 
     # NO images field here — files are handled by the route
@@ -62,11 +63,14 @@ class CarSchema(Schema):
     color = fields.Str(allow_none=True)
     description = fields.Str(allow_none=True)
     location = fields.Str()
+    contact_phone = fields.Str(allow_none=True)
     is_negotiable = fields.Bool()
     is_available = fields.Bool()
     is_sold = fields.Bool()
     views = fields.Int()
     seller_id = fields.Int()
+    seller = fields.Dict(allow_none=True)
+    admin_phone = fields.Str(allow_none=True)
     created_at = fields.DateTime()
     images = fields.List(fields.Nested(CarImageSchema))
 

@@ -19,6 +19,7 @@ import { AvailabilityBadge } from "@/components/common/StatusBadge";
 import { FavouriteButton } from "@/components/common/FavouriteButton";
 import { EnquiryForm } from "@/components/common/EnquiryForm";
 import { TestDriveDialog } from "@/components/common/TestDriveDialog";
+import { DirectContactCard, SidebarDirectContact } from "@/components/common/DirectContactSection";
 import { EmptyState, ErrorState, FullPageLoader } from "@/components/common/states";
 import * as carsApi from "@/lib/api/cars";
 import { ApiError } from "@/lib/api/client";
@@ -169,6 +170,8 @@ function CarDetailPage() {
             </section>
           ) : null}
 
+          <DirectContactCard car={car} />
+
           <section className="mt-10 rounded-xl border border-border bg-card p-6">
             <h2 className="text-xl heading-xl">Enquire about this vehicle</h2>
             <p className="mt-1 text-sm text-muted-foreground">
@@ -218,7 +221,8 @@ function CarDetailPage() {
               </p>
             ) : null}
 
-            <div className="mt-6 flex flex-col gap-2">
+            <div className="mt-6 flex flex-col gap-3">
+              <SidebarDirectContact car={car} />
               <TestDriveDialog carId={car.id} carTitle={title} disabled={car.is_sold} />
               <FavouriteButton carId={car.id} variant="full" className="w-full" />
             </div>

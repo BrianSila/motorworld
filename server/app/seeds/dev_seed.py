@@ -9,7 +9,7 @@ with app.app_context():
     db.drop_all()
     db.create_all()
 
-    admin = User(name="Admin", email="admin@simat.com", role="admin")
+    admin = User(name="Admin", email="admin@simat.com", role="admin", phone="0740892332")
     admin.set_password("Admin123!")
     seller = User(name="John Seller", email="seller@simat.com", role="user", phone="+254712345678")
     seller.set_password("Seller123!")

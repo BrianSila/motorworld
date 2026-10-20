@@ -16,6 +16,13 @@ export type CarImage = {
   is_primary: boolean;
 };
 
+export type CarSeller = {
+  id: number;
+  name: string;
+  phone: string | null;
+  role?: Role | string;
+};
+
 export type Car = {
   id: number;
   make: string;
@@ -30,6 +37,9 @@ export type Car = {
   color: string | null;
   description: string | null;
   location: string | null;
+  contact_phone?: string | null;
+  seller?: CarSeller | null;
+  admin_phone?: string | null;
   is_negotiable: boolean;
   is_available: boolean;
   is_sold: boolean;

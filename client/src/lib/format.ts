@@ -80,3 +80,35 @@ export function isValidHttpUrl(value: string): boolean {
     return false;
   }
 }
+
+export function normalizeKenyaPhone(phone: string | null | undefined): string {
+  if (!phone) return "";
+  const cleaned = phone.replace(/[^\d+]/g, "");
+  if (!cleaned) return "";
+  if (cleaned.startsWith("+")) return cleaned;
+  if (cleaned.startsWith("0")) return `+254${cleaned.slice(1)}`;
+  if (cleaned.startsWith("254")) return `+${cleaned}`;
+  return `+254${cleaned}`;
+}
+
+export function formatPhoneDisplay(phone: string | null | undefined): string {
+  if (!phone) return "—";
+  const normalized = normalizeKenyaPhone(phone);
+  if (normalized.startsWith("+254") && normalized.length === 13) {
+    return `+254 ${normalized.slice(4, 7)} ${normalized.slice(7, 10)} ${normalized.slice(10)}`;
+  }
+  return phone;
+}
+
+export function toWhatsAppNumber(phone: string | null | undefined): string {
+  const normalized = normalizeKenyaPhone(phone);
+  return normalized.replace(/^\+/, "");
+}
+
+export function toWhatsAppUrl(phone: string | null | undefined, text?: string): string {
+  const number = toWhatsAppNumber(phone);
+  if (!number) return "#";
+  const params = text ? `?text=${encodeURIComponent(text)}` : "";
+  return `https://wa.me/${number}${params}`;
+}
+

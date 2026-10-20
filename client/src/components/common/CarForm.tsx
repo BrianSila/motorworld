@@ -40,6 +40,7 @@ export type CarFormValues = {
   color: string;
   description: string;
   location: string;
+  contact_phone: string;
   is_negotiable: boolean;
   photos: FormPhotoItem[];
   images?: string[];
@@ -60,6 +61,7 @@ export function emptyCarForm(): CarFormValues {
     color: "",
     description: "",
     location: "",
+    contact_phone: "",
     is_negotiable: false,
     photos: [],
     images: [],
@@ -91,6 +93,7 @@ export function carToForm(car: Car): CarFormValues {
     color: car.color ?? "",
     description: car.description ?? "",
     location: car.location ?? "",
+    contact_phone: car.contact_phone ?? "",
     is_negotiable: car.is_negotiable,
     photos,
     images: ordered.map((image) => image.url),
@@ -283,6 +286,7 @@ export function CarForm({
         color: values.color.trim() ? values.color.trim() : null,
         description: values.description.trim() ? values.description.trim() : null,
         location: values.location.trim() ? values.location.trim() : null,
+        contact_phone: values.contact_phone.trim() ? values.contact_phone.trim() : null,
         is_negotiable: values.is_negotiable,
         images: photos.map((p) => p.url),
       },
@@ -425,6 +429,23 @@ export function CarForm({
               placeholder="Nairobi"
             />
             <FieldError messages={fieldErrors["location"]} />
+          </div>
+          <div>
+            <Label htmlFor="car-contact-phone">
+              Direct contact phone <span className="text-muted-foreground">(optional)</span>
+            </Label>
+            <Input
+              id="car-contact-phone"
+              type="tel"
+              value={values.contact_phone}
+              onChange={(event) => set("contact_phone", event.target.value)}
+              className="mt-1.5"
+              placeholder="+254 700 000 000"
+            />
+            <p className="mt-1 text-xs text-muted-foreground">
+              Phone number for buyer direct calls. Defaults to your profile phone if blank.
+            </p>
+            <FieldError messages={fieldErrors["contact_phone"]} />
           </div>
           <div className="flex items-center justify-between gap-4 rounded-lg border border-border p-4 sm:col-span-2">
             <div>
