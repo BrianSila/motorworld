@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
-from .schemas import RegisterSchema, LoginSchema
-from .services import register_user, authenticate, issue_token
+from .schemas import RegisterSchema, LoginSchema, GoogleAuthSchema
+from .services import register_user, authenticate, google_auth_user, issue_token
 from ..accounts.schemas import UserSchema
 from ..common.decorators import login_required
 
@@ -8,6 +8,7 @@ auth_bp = Blueprint("auth", __name__)
 
 register_schema = RegisterSchema()
 login_schema = LoginSchema()
+google_auth_schema = GoogleAuthSchema()
 user_schema = UserSchema()
 
 
@@ -23,6 +24,15 @@ def register():
 def login():
     data = login_schema.load(request.get_json() or {})
     user = authenticate(data["email"], data["password"])
+    token = issue_token(user)
+    return jsonify(user=user_schema.dump(user), token=token)
+
+
+@auth_bp.post("/google")
+@auth_bp.post("/auth/google")
+def google_auth():
+    data = google_auth_schema.load(request.get_json() or {})
+    user = google_auth_user(data)
     token = issue_token(user)
     return jsonify(user=user_schema.dump(user), token=token)
 

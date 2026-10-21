@@ -4,6 +4,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import {
   CalendarClock,
   Car,
+  Cookie,
   Heart,
   Home,
   LayoutDashboard,
@@ -16,6 +17,7 @@ import {
   User2,
   UserPlus,
 } from "lucide-react";
+import { CookieConsent, openCookiePreferences } from "@/components/common/CookieConsent";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -291,16 +293,26 @@ export function SiteShell({ children }: { children: ReactNode }) {
             </a>
           </div>
 
-          <nav aria-label="Footer" className="flex gap-4 text-sm text-muted-foreground">
+          <nav aria-label="Footer" className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
             <Link to="/cars" className="hover:text-foreground">
               Inventory
             </Link>
             <Link to="/sell" className="hover:text-foreground">
               Sell a vehicle
             </Link>
+            <button
+              type="button"
+              onClick={openCookiePreferences}
+              className="inline-flex items-center gap-1.5 hover:text-foreground transition-colors cursor-pointer text-xs"
+            >
+              <Cookie className="size-3.5" aria-hidden="true" />
+              <span>Cookie Settings</span>
+            </button>
           </nav>
         </div>
       </footer>
+
+      <CookieConsent />
     </div>
   );
 }

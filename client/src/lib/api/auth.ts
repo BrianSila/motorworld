@@ -16,6 +16,16 @@ export function login(payload: { email: string; password: string }) {
   return apiRequest<AuthResponse>("/login", { method: "POST", body: payload });
 }
 
+export function loginWithGoogle(payload: {
+  credential?: string;
+  email?: string;
+  name?: string;
+  google_id?: string;
+  phone?: string | null;
+}) {
+  return apiRequest<AuthResponse>("/google", { method: "POST", body: payload });
+}
+
 export function logout() {
   return apiRequest<{ message: string }>("/logout", { method: "POST", auth: true });
 }

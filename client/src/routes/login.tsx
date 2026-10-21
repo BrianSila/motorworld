@@ -15,6 +15,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { FieldError } from "@/components/common/states";
+import { GoogleAuthButton } from "@/components/common/GoogleAuthButton";
 import * as authApi from "@/lib/api/auth";
 import { ApiError, errorMessage, fieldErrorsOf } from "@/lib/api/client";
 import { useAuth } from "@/lib/auth";
@@ -117,7 +118,26 @@ function LoginPage() {
         </Alert>
       ) : null}
 
-      <form onSubmit={handleSubmit} className="mt-8 space-y-5" noValidate>
+      <div className="mt-8 space-y-4">
+        <GoogleAuthButton
+          mode="signin"
+          destination={destination}
+          onError={setError}
+        />
+
+        <div className="relative my-6">
+          <div className="absolute inset-0 flex items-center">
+            <span className="w-full border-t border-border/70" />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-background px-3 text-muted-foreground font-semibold">
+              Or sign in with email
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-5" noValidate>
         <div>
           <Label htmlFor="email">Email</Label>
           <Input

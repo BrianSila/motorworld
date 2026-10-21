@@ -27,3 +27,11 @@ class RegisterSchema(Schema):
 class LoginSchema(Schema):
     email = fields.Email(required=True)
     password = fields.Str(required=True, load_only=True)
+
+
+class GoogleAuthSchema(Schema):
+    credential = fields.Str(allow_none=True)
+    email = fields.Email(allow_none=True)
+    name = fields.Str(allow_none=True)
+    google_id = fields.Str(allow_none=True)
+    phone = fields.Str(allow_none=True)
