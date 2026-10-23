@@ -18,6 +18,7 @@ import {
   UserPlus,
 } from "lucide-react";
 import { CookieConsent, openCookiePreferences } from "@/components/common/CookieConsent";
+import { Chatbot } from "@/components/common/Chatbot";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -277,7 +278,10 @@ export function SiteShell({ children }: { children: ReactNode }) {
           <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
             <div className="flex items-center gap-1.5">
               <span className="font-semibold text-foreground">Admin Hotline:</span>
-              <a href="tel:+254740892332" className="hover:text-primary font-mono font-bold transition-colors">
+              <a
+                href="tel:+254740892332"
+                className="hover:text-primary font-mono font-bold transition-colors"
+              >
                 +254 740 892 332
               </a>
             </div>
@@ -293,7 +297,10 @@ export function SiteShell({ children }: { children: ReactNode }) {
             </a>
           </div>
 
-          <nav aria-label="Footer" className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+          <nav
+            aria-label="Footer"
+            className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground"
+          >
             <Link to="/cars" className="hover:text-foreground">
               Inventory
             </Link>
@@ -313,6 +320,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
       </footer>
 
       <CookieConsent />
+      <Chatbot />
     </div>
   );
 }
